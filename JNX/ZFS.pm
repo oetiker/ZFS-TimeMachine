@@ -113,7 +113,8 @@ sub getsnapshotsfordatasetandhost
 
 		while( $_ = <FILE>)
 		{
-			if( /^([A-Za-z0-9\_\-\s\/]+)\@(\S+)\s/ )
+            chomp;
+			if( /^([A-Za-z0-9\_\-\s\/]+)\@(\d{4}-\d{2}-\d{2}-\d{6})$/ )
 			{
 				print STDERR "Got Snapshot: $host: $1\@$2 \n";
 				push(@{$snapshotmemory{$host}{datasets}{$1}},$2) if length $2>0;
