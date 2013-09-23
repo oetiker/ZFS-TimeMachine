@@ -229,7 +229,7 @@ if( my $childpid = fork() )
 			
 			if( $destinationhost )
 			{
-				system($zfssendcommand.' | (ssh -C '.$destinationhost." '".$zfsreceivecommand."')") && die "Can't remote command did fail: $zfssendcommand -> $zfsreceivecommand\n"
+				system($zfssendcommand.' | (ssh -o Compression=no -o Cipher=arcfour '.$destinationhost." '".$zfsreceivecommand."')") && die "Can't remote command did fail: $zfssendcommand -> $zfsreceivecommand\n"
 			}
 			else
 			{
