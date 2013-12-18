@@ -192,10 +192,13 @@ sub destroysnapshotondatasetandhost
 	my($dataset,$host)		= getdatasetandhost(@otherargs);
 
 	my $zfsdestroycommand = 'zfs destroy "'.$dataset.'@'.$snapshot.'"';
+
+#	warn "Running $zfsdestroycommand\n";
+#	return 1;
 	
 	if( $host )
 	{
-		if( system('ssh -C '.$host." '".$zfsdestroycommand."'") )
+		if( system('ssh '.$host." '".$zfsdestroycommand."'") )
 		{
 			print STDERR "Could not destroy snapshot: $zfsdestroycommand\n";
 			return undef;
