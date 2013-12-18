@@ -103,6 +103,7 @@ sub checkforrunningmyself
 
                 if( kill(0,int($otherpid)) )
                 {
+                        system "/usr/bin/pargs",int($otherpid);
                         return 0;
                 }
         }
