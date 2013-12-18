@@ -196,9 +196,11 @@ if( my $childpid = fork() )
 					{
 						print 'Snapshots newer on destination dataset('.$destinationdataset.'):'.$snapshotsnewerondestination[0].(@snapshotsnewerondestination>1?' - '.$snapshotsnewerondestination[-1]:undef)."\n";
 						
+#						for my $snapshotname (@snapshotsnewerondestination)
+#						{
+						JNX::ZFS::destroysnapshotondatasetandhost(join(",", @snapshotsnewerondestination),$destinationdataset,$destinationhost);
 						for my $snapshotname (@snapshotsnewerondestination)
 						{
-							JNX::ZFS::destroysnapshotondatasetandhost($snapshotname,$destinationdataset,$destinationhost);
 							
 							@destinationsnapshots = grep(!/^\Q$snapshotname\E$/,@destinationsnapshots); # grep as delete @destinationsnapshots[$snapshotname] works only on hashes.
 						}
@@ -279,7 +281,7 @@ if( my $childpid = fork() )
 				splice(@snapshotstodelete,-1* $snapshotstokeeponsource);
 				
 				print 'Snapshots to delete on source ('.$sourcedataset.'): '.$snapshotstodelete[0].(@snapshotstodelete>1?' - '.$snapshotstodelete[-1]:undef)."\n";
-				
+				my @todelete;
 				for my $snapshotname (@snapshotstodelete)
 				{
 					if( length($snapshotname) )
@@ -289,14 +291,17 @@ if( my $childpid = fork() )
 							my $snapshottime = JNX::ZFS::timeofsnapshot($snapshotname);
 							if( $snapshottime < time()-$minimumtimetokeepsnapshotsonsource )
 							{
-								JNX::ZFS::destroysnapshotondatasetandhost($snapshotname,$sourcedataset);
+								push @todelete,$snapshotname;
 							}
 						}
 						else
 						{
-							JNX::ZFS::destroysnapshotondatasetandhost($snapshotname,$sourcedataset);
+							push @todelete,$snapshotname;
 						}
 					}
+				}
+				if (@todelete){
+					JNX::ZFS::destroysnapshotondatasetandhost(join(",",@todelete),$sourcedataset);
 				}
 			}
 		}
@@ -308,7 +313,7 @@ if( my $childpid = fork() )
 		if( $commandlineoption{deletesnapshotsondestination} )
 		{
 			my %backupbuckets;
-			
+			my @todelete;			
 			for my $snapshotname (reverse @destinationsnapshots )
 			{
 				if( my $snapshottime = JNX::ZFS::timeofsnapshot($snapshotname) )
@@ -336,7 +341,7 @@ if( my $childpid = fork() )
 					{
 						print 'Will remove snapshot:'.$snapshotname.'='.$snapshottime.' Backup in bucket: $backupbucket{'.$bucket.'}='.$backupbuckets{$bucket}."\n";
 						
-						JNX::ZFS::destroysnapshotondatasetandhost($snapshotname,$destinationdataset,$destinationhost)  if !$commandlineoption{debug}
+						push @todelete,$snapshotname;
 					}
 				}
 				else
@@ -344,12 +349,17 @@ if( my $childpid = fork() )
 					print STDERR "snapshot not in YYYY-MM-DD-HHMMSS format: $snapshotname - ignoring\n";
 				}
 			}
+			if (@todelete){
+				JNX::ZFS::destroysnapshotondatasetandhost(join(",",@todelete),$destinationdataset,$destinationhost)  if !$commandlineoption{debug}
+			}
+
+
 		}
 	}
 }
 
 
-exit;
+exit 0;
 
 
 sub jnxparsetimeperbuckethash
