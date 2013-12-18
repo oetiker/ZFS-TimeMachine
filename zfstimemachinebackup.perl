@@ -220,7 +220,9 @@ if( my $childpid = fork() )
 		else
 		{
 			my $zfssendcommand		= undef;
-			my $zfsreceivecommand	= 'zfs receive '.($commandlineoption{verbose}?'-v ':undef).'-F "'.$destinationdataset.'"';
+		
+			my $q = $commandlineoption{verbose} ? '' : '-q';
+			my $zfsreceivecommand	=  'zfs receive '.($commandlineoption{verbose}?'-v ':undef).'-F "'.$destinationdataset.'"';
 			
 			if( $lastcommonsnapshot )
 			{
@@ -233,7 +235,7 @@ if( my $childpid = fork() )
 			
 			if( $destinationhost )
 			{
-				system($zfssendcommand.' | (ssh -o Compression=no -o Cipher=arcfour '.$destinationhost." '".$zfsreceivecommand."')") && die "Can't remote command did fail: $zfssendcommand -> $zfsreceivecommand\n"
+				system($zfssendcommand.' | (ssh -o Compression=yes -o CompressionLevel=1 -o Cipher=arcfour '.$destinationhost." '".'/opt/omni/bin/mbuffer -s 128k -m 100M '.$q.' | '.$zfsreceivecommand."')") && die "Can't remote command (to $destinationhost) did fail: $zfssendcommand -> $zfsreceivecommand\n"
 			}
 			else
 			{
