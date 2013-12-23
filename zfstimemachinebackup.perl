@@ -316,7 +316,7 @@ if( my $childpid = fork() )
 		{
 			my %backupbuckets;
 			my @todelete;			
-			for my $snapshotname (reverse @destinationsnapshots )
+                       for my $snapshotname ( @destinationsnapshots )
 			{
 				if( my $snapshottime = JNX::ZFS::timeofsnapshot($snapshotname) )
 				{
@@ -452,7 +452,7 @@ sub bucketfortime
 	
 	my $timedistance = time() - $timetotest;
 	
-	my $buckettime	= (sort( values %{$timebuckets} ))[-1];
+       my $buckettime  = (sort{ $a<=>$b }( values %{$timebuckets} ))[-1];
 
 	for my $bucketage  (sort{ $a<=>$b }( keys %{$timebuckets} ))
 	{
